@@ -1,0 +1,1468 @@
+<!DOCTYPE html>
+<html lang="id" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TermoVerse: Eksplorasi & Simulasi Termodinamika SMA/MA</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#f0fdfa',
+                            100: '#ccfbf1',
+                            500: '#14b8a6',
+                            600: '#0d9488',
+                            700: '#0f766e',
+                            900: '#134e4a',
+                        },
+                        kbc: {
+                            allah: '#eab308', // Gold/Amber
+                            ilmu: '#3b82f6',  // Blue
+                            lingkungan: '#10b981' // Emerald
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0f172a;
+            color: #f8fafc;
+        }
+        .canvas-container {
+            position: relative;
+            background: radial-gradient(circle at center, #1e293b 0%, #0f172a 100%);
+            border-radius: 0.75rem;
+            overflow: hidden;
+            border: 1px solid #334155;
+        }
+        .kbc-card-allah {
+            border-left: 4px solid #eab308;
+            background: linear-gradient(135deg, rgba(234, 179, 8, 0.08) 0%, rgba(30, 41, 59, 0.4) 100%);
+        }
+        .kbc-card-ilmu {
+            border-left: 4px solid #3b82f6;
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.08) 0%, rgba(30, 41, 59, 0.4) 100%);
+        }
+        .kbc-card-lingkungan {
+            border-left: 4px solid #10b981;
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.08) 0%, rgba(30, 41, 59, 0.4) 100%);
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #1e293b;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #475569;
+            border-radius: 3px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #64748b;
+        }
+        @keyframes pulse-glow {
+            0%, 100% { opacity: 0.4; }
+            50% { opacity: 0.8; }
+        }
+        .glow-effect {
+            animation: pulse-glow 3s infinite ease-in-out;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col antialiased selection:bg-brand-500 selection:text-white">
+
+    <header class="bg-slate-900/90 backdrop-blur border-b border-slate-800 sticky top-0 z-50 px-4 py-3">
+        <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-3">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-brand-600 to-indigo-600 flex items-center justify-center text-white shadow-lg shadow-brand-500/20">
+                    <i class="fa-solid fa-atom text-xl"></i>
+                </div>
+                <div>
+                    <h1 class="text-lg font-bold bg-clip-text text-transparent bg-gradient-to-r from-brand-500 via-indigo-300 to-amber-300">
+                        TermoVerse <span class="text-xs font-normal text-slate-400 border border-slate-700 px-2 py-0.5 rounded-full ml-1">SMA/MA Kelas 10-11</span>
+                    </h1>
+                    <p class="text-xs text-slate-400 flex items-center gap-2">
+                        <span class="text-amber-400"><i class="fa-solid fa-heart text-[10px]"></i> KBC Kemenag RI</span>
+                        <span>•</span>
+                        <span>Inquiry-Based Physics Learning</span>
+                    </p>
+                </div>
+            </div>
+
+            <!-- Tab Navigation Buttons -->
+            <nav class="flex items-center gap-1 bg-slate-950 p-1.5 rounded-xl border border-slate-800 text-xs overflow-x-auto max-w-full custom-scrollbar">
+                <button onclick="switchTab('tab-sistem')" id="nav-tab-sistem" class="nav-btn active px-3 py-1.5 rounded-lg font-medium transition flex items-center gap-1.5 bg-brand-600 text-white">
+                    <i class="fa-solid fa-fire-burner"></i> <span>1. Sistem & Hukum I</span>
+                </button>
+                <button onclick="switchTab('tab-proses')" id="nav-tab-proses" class="nav-btn px-3 py-1.5 rounded-lg font-medium text-slate-400 hover:text-white transition flex items-center gap-1.5">
+                    <i class="fa-solid fa-chart-line"></i> <span>2. Proses & Diagram P-V</span>
+                </button>
+                <button onclick="switchTab('tab-mesin')" id="nav-tab-mesin" class="nav-btn px-3 py-1.5 rounded-lg font-medium text-slate-400 hover:text-white transition flex items-center gap-1.5">
+                    <i class="fa-solid fa-gears"></i> <span>3. Mesin Kalor & Hukum II</span>
+                </button>
+                <button onclick="switchTab('tab-entropi')" id="nav-tab-entropi" class="nav-btn px-3 py-1.5 rounded-lg font-medium text-slate-400 hover:text-white transition flex items-center gap-1.5">
+                    <i class="fa-solid fa-shuffle"></i> <span>4. Entropi & Alam</span>
+                </button>
+                <button onclick="switchTab('tab-lab')" id="nav-tab-lab" class="nav-btn px-3 py-1.5 rounded-lg font-medium text-slate-400 hover:text-white transition flex items-center gap-1.5">
+                    <i class="fa-solid fa-vial-circle-check"></i> <span>5. Lab Virtual & Quiz</span>
+                </button>
+            </nav>
+        </div>
+    </header>
+
+    <main class="flex-grow max-w-7xl w-full mx-auto p-4 md:p-6 space-y-6">
+
+        <!-- ========================================================================= -->
+        <!-- MODUL 1: SISTEM, LINGKUNGAN, & HUKUM I TERMODINAMIKA                      -->
+        <!-- ========================================================================= -->
+        <section id="tab-sistem" class="tab-content space-y-6">
+            <!-- Header Modul & Tujuan Pembelajaran -->
+            <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-5 shadow-xl">
+                <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    <div>
+                        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-brand-500/10 border border-brand-500/20 text-brand-400 text-xs font-semibold mb-2">
+                            <i class="fa-solid fa-compass"></i> Pembelajaran Berbasis Eksplorasi
+                        </div>
+                        <h2 class="text-2xl font-bold text-white">Modul 1: Sistem, Lingkungan, Energi Dalam & Hukum I Termodinamika</h2>
+                        <p class="text-sm text-slate-400 mt-1">Bagaimana energi berpindah antara sistem gas dan lingkungannya? Amati gerakan partikel saat kalor ditambahkan atau usaha dilakukan.</p>
+                    </div>
+                    <!-- Indicator KBC -->
+                    <div class="flex flex-wrap gap-2 text-xs">
+                        <span class="px-2.5 py-1 rounded-lg bg-amber-500/10 border border-amber-500/30 text-amber-300 flex items-center gap-1" title="Cinta Allah SWT & Rasul-Nya">
+                            <i class="fa-solid fa-moon"></i> Cinta Allah SWT
+                        </span>
+                        <span class="px-2.5 py-1 rounded-lg bg-blue-500/10 border border-blue-500/30 text-blue-300 flex items-center gap-1" title="Cinta Ilmu">
+                            <i class="fa-solid fa-flask"></i> Cinta Ilmu
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Dashboard Simulasi Sistem Piston & Gas -->
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                <!-- Visual Canvas: Silinder Piston Interaktif -->
+                <div class="lg:col-span-7 space-y-4">
+                    <div class="canvas-container p-4">
+                        <div class="flex justify-between items-center mb-2 px-2 text-xs font-mono text-slate-400">
+                            <span><i class="fa-solid fa-microscope text-brand-400"></i> MIKRO-SIMULASI PARTIKEL GAS</span>
+                            <span id="gas-state-badge" class="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">Keadaan Setimbang</span>
+                        </div>
+                        <canvas id="canvasPiston" width="600" height="380" class="w-full h-auto rounded-lg bg-slate-950 border border-slate-800"></canvas>
+                        
+                        <!-- Realtime Gauges -->
+                        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 mt-3 font-mono text-xs">
+                            <div class="bg-slate-900/90 p-2.5 rounded-lg border border-slate-800 text-center">
+                                <span class="text-slate-400 block text-[10px]">TEKANAN (P)</span>
+                                <span id="gaugeP" class="text-base font-bold text-sky-400">101.3 kPa</span>
+                            </div>
+                            <div class="bg-slate-900/90 p-2.5 rounded-lg border border-slate-800 text-center">
+                                <span class="text-slate-400 block text-[10px]">VOLUME (V)</span>
+                                <span id="gaugeV" class="text-base font-bold text-amber-400">2.00 L</span>
+                            </div>
+                            <div class="bg-slate-900/90 p-2.5 rounded-lg border border-slate-800 text-center">
+                                <span class="text-slate-400 block text-[10px]">SUHU (T)</span>
+                                <span id="gaugeT" class="text-base font-bold text-rose-400">300.0 K</span>
+                            </div>
+                            <div class="bg-slate-900/90 p-2.5 rounded-lg border border-slate-800 text-center">
+                                <span class="text-slate-400 block text-[10px]">ENERGI DALAM (U)</span>
+                                <span id="gaugeU" class="text-base font-bold text-emerald-400">374.1 J</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- KBC Card: Cinta Allah SWT -->
+                    <div class="kbc-card-allah p-4 rounded-xl text-xs space-y-1.5">
+                        <div class="flex items-center gap-2 font-semibold text-amber-300">
+                            <i class="fa-solid fa-kaaba"></i> <span>Integrasi KBC: Cinta Allah SWT & Rasul-Nya</span>
+                        </div>
+                        <p class="text-slate-300 leading-relaxed">
+                            Kekekalan Energi (Hukum I Termodinamika) mengajarkan bahwa energi tidak dapat diciptakan atau dimusnahkan oleh manusia, melainkan hanya berubah wujud. Keteraturan dan kepatuhan molekul gas terhadap hukum alam ini merupakan wujud *Sunnatullah*—bukti keagungan Pencipta yang mengatur alam semesta dengan penuh keseimbangan ($Q = \Delta U + W$).
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Control Panel & Guided Inquiry -->
+                <div class="lg:col-span-5 space-y-4 flex flex-col justify-between">
+                    <!-- Panel Kontrol Aksi -->
+                    <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 space-y-4">
+                        <h3 class="text-sm font-semibold text-slate-200 border-b border-slate-800 pb-2 flex items-center justify-between">
+                            <span><i class="fa-solid fa-sliders text-brand-400 mr-2"></i>Kontrol Eksperimen Sistem</span>
+                            <button onclick="resetSystem()" class="text-xs text-slate-400 hover:text-white bg-slate-800 hover:bg-slate-700 px-2 py-1 rounded transition">Reset</button>
+                        </h3>
+
+                        <!-- Kalor (Q) Control -->
+                        <div class="space-y-1.5">
+                            <div class="flex justify-between text-xs">
+                                <span class="text-slate-300">Transfer Kalor Lingkungan ($Q$)</span>
+                                <span id="qValueText" class="font-mono text-amber-400">+0 J</span>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <button onclick="applyHeat(-100)" class="flex-1 py-1.5 bg-sky-950 hover:bg-sky-900 border border-sky-700/50 text-sky-300 rounded-lg text-xs font-medium transition flex items-center justify-center gap-1">
+                                    <i class="fa-solid fa-snowflake"></i> Serap Kalor (-Q)
+                                </button>
+                                <button onclick="applyHeat(100)" class="flex-1 py-1.5 bg-amber-950 hover:bg-amber-900 border border-amber-700/50 text-amber-300 rounded-lg text-xs font-medium transition flex items-center justify-center gap-1">
+                                    <i class="fa-solid fa-fire"></i> Tambah Kalor (+Q)
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Usaha / Piston Control -->
+                        <div class="space-y-1.5">
+                            <div class="flex justify-between text-xs">
+                                <span class="text-slate-300">Gaya Eksternal pada Piston ($W$)</span>
+                                <span id="wValueText" class="font-mono text-indigo-400">0 J</span>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <button onclick="movePiston(-0.2)" class="flex-1 py-1.5 bg-slate-800 hover:bg-slate-700 border border-slate-600 text-slate-200 rounded-lg text-xs font-medium transition flex items-center justify-center gap-1">
+                                    <i class="fa-solid fa-compress"></i> Kompresi ($V \downarrow$)
+                                </button>
+                                <button onclick="movePiston(0.2)" class="flex-1 py-1.5 bg-slate-800 hover:bg-slate-700 border border-slate-600 text-slate-200 rounded-lg text-xs font-medium transition flex items-center justify-center gap-1">
+                                    <i class="fa-solid fa-expand"></i> Ekspansi ($V \uparrow$)
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Lock State Togglers -->
+                        <div class="pt-2 border-t border-slate-800/80 grid grid-cols-2 gap-2 text-xs">
+                            <label class="flex items-center gap-2 cursor-pointer text-slate-300 bg-slate-950 p-2 rounded-lg border border-slate-800">
+                                <input type="checkbox" id="lockPistonCheck" onchange="toggleLockPiston(this.checked)" class="rounded bg-slate-800 border-slate-700 text-brand-600 focus:ring-brand-500">
+                                <span>Kunci Piston ($V$ Tetap)</span>
+                            </label>
+                            <label class="flex items-center gap-2 cursor-pointer text-slate-300 bg-slate-950 p-2 rounded-lg border border-slate-800">
+                                <input type="checkbox" id="constantPCheck" onchange="toggleConstantP(this.checked)" class="rounded bg-slate-800 border-slate-700 text-brand-600 focus:ring-brand-500">
+                                <span>Beban Bebas ($P$ Tetap)</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Guided Scaffolding Prompt / Inquiry Card -->
+                    <div class="bg-indigo-950/40 border border-indigo-800/50 rounded-2xl p-4 text-xs space-y-3 flex-grow flex flex-col justify-between">
+                        <div>
+                            <div class="flex items-center gap-2 text-indigo-300 font-semibold mb-1">
+                                <i class="fa-solid fa-lightbulb text-amber-400"></i> Tantangan Penyelidikan (Inquiry):
+                            </div>
+                            <p id="inquiryPromptMod1" class="text-slate-300 leading-relaxed">
+                                Coba tambahkan kalor (+Q) saat piston **dikunci** ($V$ tetap). Perhatikan apa yang terjadi pada kecepatan partikel, Suhu ($T$), dan Energi Dalam ($\Delta U$). Apakah gas melakukan usaha ($W$)?
+                            </p>
+                        </div>
+                        
+                        <!-- Interactive Quiz/Validation Inside Scaffolding -->
+                        <div class="bg-slate-900/90 p-3 rounded-xl border border-indigo-900/60 space-y-2 mt-2">
+                            <span class="text-slate-400 font-medium block">Pertanyaan Reflektif:</span>
+                            <p class="text-slate-200">Ketika volume gas tetap ($\Delta V = 0$), ke manakah seluruh kalor $Q$ yang diberikan pergi?</p>
+                            <div class="grid grid-cols-1 gap-1.5 pt-1">
+                                <button onclick="checkInquiryM1(this, false)" class="text-left p-2 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 transition">A. Hilang ke luar lingkungan</button>
+                                <button onclick="checkInquiryM1(this, true)" class="text-left p-2 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 transition">B. Sepenuhnya meningkatkan Energi Dalam ($\Delta U$)</button>
+                                <button onclick="checkInquiryM1(this, false)" class="text-left p-2 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 transition">C. Diubah seluruhnya menjadi usaha ($W$)</button>
+                            </div>
+                            <div id="m1Feedback" class="hidden p-2 rounded text-[11px] font-medium transition"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+
+        <!-- ========================================================================= -->
+        <!-- MODUL 2: PROSES TERMODINAMIKA & DIAGRAM P-V                              -->
+        <!-- ========================================================================= -->
+        <section id="tab-proses" class="tab-content hidden space-y-6">
+            <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-5 shadow-xl">
+                <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    <div>
+                        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 text-xs font-semibold mb-2">
+                            <i class="fa-solid fa-chart-area"></i> Visualisasi Lintasan Keadaan Gas
+                        </div>
+                        <h2 class="text-2xl font-bold text-white">Modul 2: 4 Proses Termodinamika & Diagram $P-V$</h2>
+                        <p class="text-sm text-slate-400 mt-1">Eksplorasi hubungan Isobarik, Isokhorik, Isotermal, dan Adiabatik. Luas daerah di bawah kurva $P-V$ mewakili Usaha ($W$).</p>
+                    </div>
+                    <div class="flex flex-wrap gap-2 text-xs">
+                        <span class="px-2.5 py-1 rounded-lg bg-blue-500/10 border border-blue-500/30 text-blue-300 flex items-center gap-1">
+                            <i class="fa-solid fa-brain"></i> Computational Thinking
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                <!-- Visual Canvas Diagram P-V Dinamis -->
+                <div class="lg:col-span-7 space-y-4">
+                    <div class="canvas-container p-4">
+                        <div class="flex justify-between items-center mb-2 px-2 text-xs font-mono text-slate-400">
+                            <span><i class="fa-solid fa-chart-line text-indigo-400"></i> DIAGRAM P-V REAL-TIME</span>
+                            <span id="processNameBadge" class="px-2 py-0.5 rounded bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">Proses Isobarik</span>
+                        </div>
+                        <canvas id="canvasPV" width="600" height="380" class="w-full h-auto rounded-lg bg-slate-950 border border-slate-800"></canvas>
+                        
+                        <!-- Mathematical Calculation Breakdown -->
+                        <div class="mt-3 p-3 bg-slate-900/90 rounded-xl border border-slate-800 grid grid-cols-3 gap-2 font-mono text-xs text-center">
+                            <div>
+                                <span class="text-slate-400 text-[10px] block">USAHA ($W = \int P dV$)</span>
+                                <span id="pvCalcW" class="text-indigo-400 font-bold text-sm">+202.6 J</span>
+                            </div>
+                            <div>
+                                <span class="text-slate-400 text-[10px] block">PERUBAHAN ENERGI DALAM ($\Delta U$)</span>
+                                <span id="pvCalcdU" class="text-emerald-400 font-bold text-sm">+303.9 J</span>
+                            </div>
+                            <div>
+                                <span class="text-slate-400 text-[10px] block">KALOR MASUK/KELUAR ($Q$)</span>
+                                <span id="pvCalcQ" class="text-amber-400 font-bold text-sm">+506.5 J</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- KBC Card: Cinta Ilmu -->
+                    <div class="kbc-card-ilmu p-4 rounded-xl text-xs space-y-1.5">
+                        <div class="flex items-center gap-2 font-semibold text-blue-300">
+                            <i class="fa-solid fa-graduation-cap"></i> <span>Integrasi KBC: Cinta Ilmu & Kejujuran Ilmiah</span>
+                        </div>
+                        <p class="text-slate-300 leading-relaxed">
+                            Menganalisis grafik $P-V$ memerlukan ketelitian, kejujuran data, dan logika berpikir tingkat tinggi. Melalui pemahaman fungsi matematis lintasan proses, kita diajak menghargai ilmu pengetahuan sebagai sarana memahami mekanisme alam secara kuantitatif dan dapat diuji kebenarannya.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Selector & Interactive Controls for Processes -->
+                <div class="lg:col-span-5 space-y-4">
+                    <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 space-y-4">
+                        <h3 class="text-sm font-semibold text-slate-200 border-b border-slate-800 pb-2">
+                            Pilih Jenis Proses Termodinamika:
+                        </h3>
+
+                        <div class="grid grid-cols-2 gap-2">
+                            <button onclick="selectProcess('isobaric')" id="btn-isobaric" class="process-btn p-3 rounded-xl border border-slate-700 bg-brand-600/20 text-brand-300 border-brand-500 text-left transition hover:border-brand-500">
+                                <div class="font-bold text-xs">1. ISOBARIK</div>
+                                <div class="text-[10px] text-slate-400 mt-0.5">Tekanan Konstan ($P$)</div>
+                            </button>
+                            <button onclick="selectProcess('isochoric')" id="btn-isochoric" class="process-btn p-3 rounded-xl border border-slate-800 bg-slate-950 text-slate-400 text-left transition hover:border-slate-600">
+                                <div class="font-bold text-xs">2. ISOKHORIK</div>
+                                <div class="text-[10px] text-slate-400 mt-0.5">Volume Konstan ($V$)</div>
+                            </button>
+                            <button onclick="selectProcess('isothermal')" id="btn-isothermal" class="process-btn p-3 rounded-xl border border-slate-800 bg-slate-950 text-slate-400 text-left transition hover:border-slate-600">
+                                <div class="font-bold text-xs">3. ISOTERMAL</div>
+                                <div class="text-[10px] text-slate-400 mt-0.5">Suhu Konstan ($T$)</div>
+                            </button>
+                            <button onclick="selectProcess('adiabatic')" id="btn-adiabatic" class="process-btn p-3 rounded-xl border border-slate-800 bg-slate-950 text-slate-400 text-left transition hover:border-slate-600">
+                                <div class="font-bold text-xs">4. ADIABATIK</div>
+                                <div class="text-[10px] text-slate-400 mt-0.5">Tanpa Kalor ($Q = 0$)</div>
+                            </button>
+                        </div>
+
+                        <!-- Process Description & Equation Card -->
+                        <div id="processInfoCard" class="bg-slate-950 p-3.5 rounded-xl border border-slate-800 text-xs space-y-2">
+                            <div class="font-bold text-brand-400 flex items-center justify-between">
+                                <span id="procTitle">Proses Isobarik (P = Konstan)</span>
+                                <span id="procFormula" class="font-mono text-amber-300">W = P(V₂ - V₁)</span>
+                            </div>
+                            <p id="procDesc" class="text-slate-300 leading-relaxed text-[11px]">
+                                Pada proses Isobarik, tekanan dijaga konstan sementara gas berekspansi atau dikompresi. Usaha yang dilakukan gas sebanding dengan perubahan volume, dan direpresentasikan sebagai luas persegi panjang di bawah kurva P-V.
+                            </p>
+                        </div>
+
+                        <!-- Animation Slider / Control -->
+                        <div class="space-y-2 pt-2">
+                            <div class="flex justify-between text-xs">
+                                <span class="text-slate-300">Simulasikan Kemajuan Proses:</span>
+                                <span id="procProgressText" class="font-mono text-indigo-400">Keadaan 1 → Keadaan 2</span>
+                            </div>
+                            <input type="range" id="procSlider" min="0" max="100" value="0" oninput="updateProcessProgress(this.value)" class="w-full accent-brand-500 cursor-pointer">
+                            <div class="flex justify-between gap-2 pt-1">
+                                <button onclick="runProcessAnimation()" class="flex-1 py-2 bg-brand-600 hover:bg-brand-500 text-white rounded-lg text-xs font-semibold transition flex items-center justify-center gap-1.5 shadow-lg shadow-brand-600/20">
+                                    <i class="fa-solid fa-play"></i> Putar Animasi
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+
+        <!-- ========================================================================= -->
+        <!-- MODUL 3: MESIN KALOR, SIKLUS CARNOT, & EFISIENSI                          -->
+        <!-- ========================================================================= -->
+        <section id="tab-mesin" class="tab-content hidden space-y-6">
+            <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-5 shadow-xl">
+                <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    <div>
+                        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-semibold mb-2">
+                            <i class="fa-solid fa-leaf"></i> Efisiensi Energi & Dampak Lingkungan
+                        </div>
+                        <h2 class="text-2xl font-bold text-white">Modul 3: Mesin Kalor, Siklus Carnot & Hukum II Termodinamika</h2>
+                        <p class="text-sm text-slate-400 mt-1">Mengapa tidak ada mesin kalor di dunia yang memiliki efisiensi 100%? Pelajari aliran energi dan kalor terbuang ($Q_C$).</p>
+                    </div>
+                    <div class="flex flex-wrap gap-2 text-xs">
+                        <span class="px-2.5 py-1 rounded-lg bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 flex items-center gap-1">
+                            <i class="fa-solid fa-tree"></i> Cinta Lingkungan
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                <!-- Visual Canvas Mesin Kalor Carnot -->
+                <div class="lg:col-span-7 space-y-4">
+                    <div class="canvas-container p-4">
+                        <div class="flex justify-between items-center mb-2 px-2 text-xs font-mono text-slate-400">
+                            <span><i class="fa-solid fa-arrows-spin text-emerald-400"></i> DIAGRAM ALIRAN ENERGI MESIN KALOR</span>
+                            <span id="carnotEffBadge" class="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">Efisiensi Carnot: 50%</span>
+                        </div>
+                        <canvas id="canvasEngine" width="600" height="380" class="w-full h-auto rounded-lg bg-slate-950 border border-slate-800"></canvas>
+                        
+                        <!-- Engine Data Output -->
+                        <div class="grid grid-cols-3 gap-2 mt-3 font-mono text-xs text-center">
+                            <div class="bg-slate-900/90 p-2.5 rounded-lg border border-slate-800">
+                                <span class="text-amber-400 block text-[10px]">KALOR MASUK ($Q_H$)</span>
+                                <span id="engQH" class="text-base font-bold text-amber-300">1000 J</span>
+                            </div>
+                            <div class="bg-slate-900/90 p-2.5 rounded-lg border border-slate-800">
+                                <span class="text-indigo-400 block text-[10px]">USAHA MEKANIK ($W$)</span>
+                                <span id="engW" class="text-base font-bold text-indigo-300">500 J</span>
+                            </div>
+                            <div class="bg-slate-900/90 p-2.5 rounded-lg border border-slate-800">
+                                <span class="text-rose-400 block text-[10px]">KALOR TERBUANG ($Q_C$)</span>
+                                <span id="engQC" class="text-base font-bold text-rose-300">500 J</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- KBC Card: Cinta Lingkungan -->
+                    <div class="kbc-card-lingkungan p-4 rounded-xl text-xs space-y-1.5">
+                        <div class="flex items-center gap-2 font-semibold text-emerald-300">
+                            <i class="fa-solid fa-earth-americas"></i> <span>Integrasi KBC: Cinta Lingkungan & Efisiensi Energi</span>
+                        </div>
+                        <p class="text-slate-300 leading-relaxed">
+                            Hukum II Termodinamika menyatakan bahwa sebagian kalor $Q_C$ pasti terbuang ke lingkungan. Pada mesin kendaraan bermotor atau PLTU bahan bakar fosil, sisa pembuangan panas ini memberikan dampak berupa *pemanasan termal lokal* dan emisi karbon. Meningkatan efisiensi mesin serta beralih ke energi bersih adalah bentuk komitmen nyata kita dalam menjaga bumi dari kerusakan (*Rahmatan lil 'Alamin*).
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Sliders for Reservoir Temperatures -->
+                <div class="lg:col-span-5 space-y-4">
+                    <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 space-y-4">
+                        <h3 class="text-sm font-semibold text-slate-200 border-b border-slate-800 pb-2">
+                            Pengaturan Suhu Reservoir Mesin:
+                        </h3>
+
+                        <!-- Reservoir Panas TH -->
+                        <div class="space-y-1">
+                            <div class="flex justify-between text-xs">
+                                <span class="text-amber-400 font-medium"><i class="fa-solid fa-temperature-arrow-up mr-1"></i> Suhu Reservoir Tinggi ($T_H$)</span>
+                                <span id="thVal" class="font-mono text-amber-300 font-bold">600 K (327 °C)</span>
+                            </div>
+                            <input type="range" id="thSlider" min="400" max="1000" step="10" value="600" oninput="updateEngineParams()" class="w-full accent-amber-500 cursor-pointer">
+                        </div>
+
+                        <!-- Reservoir Dingin TC -->
+                        <div class="space-y-1">
+                            <div class="flex justify-between text-xs">
+                                <span class="text-sky-400 font-medium"><i class="fa-solid fa-temperature-arrow-down mr-1"></i> Suhu Reservoir Rendah ($T_C$)</span>
+                                <span id="tcVal" class="font-mono text-sky-300 font-bold">300 K (27 °C)</span>
+                            </div>
+                            <input type="range" id="tcSlider" min="200" max="500" step="10" value="300" oninput="updateEngineParams()" class="w-full accent-sky-500 cursor-pointer">
+                        </div>
+
+                        <!-- Efficiency Formula Display -->
+                        <div class="bg-slate-950 p-3 rounded-xl border border-slate-800 text-xs space-y-2">
+                            <div class="text-slate-400 font-mono text-[11px]">Rumus Efisiensi Ideal (Carnot):</div>
+                            <div class="text-center font-mono text-emerald-400 text-sm py-1 bg-slate-900 rounded border border-slate-800">
+                                $\eta = \left(1 - \frac{T_C}{T_H}\right) \times 100\%$
+                            </div>
+                            <p class="text-slate-400 text-[11px]">
+                                *Petunjuk:* Untuk memaksimalkan efisiensi $\eta$, selisih antara $T_H$ dan $T_C$ harus dibuat seluas mungkin.
+                            </p>
+                        </div>
+
+                        <!-- Interactive Scenario Problem -->
+                        <div class="p-3 bg-indigo-950/30 border border-indigo-800/40 rounded-xl space-y-2 text-xs">
+                            <div class="font-semibold text-indigo-300 flex items-center gap-1.5">
+                                <i class="fa-solid fa-vial"></i> Studi Kasus Pembangkit Geotermal:
+                            </div>
+                            <p class="text-slate-300 text-[11px]">
+                                Jika reservoir dingin ($T_C$) ditetapkan oleh suhu lingkungan luar sebesar 300 K, apa langkah terbaik secara teknis untuk meningkatkan efisiensi energi listrik yang dihasilkan?
+                            </p>
+                            <div class="grid grid-cols-1 gap-1 pt-1">
+                                <button onclick="checkEngineQuiz(this, false)" class="text-left p-1.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-300">A. Membuang lebih banyak kalor ke sungai sekitar</button>
+                                <button onclick="checkEngineQuiz(this, true)" class="text-left p-1.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-300">B. Meningkatkan suhu uap panas geotermal ($T_H$) masuk ke turbin</button>
+                            </div>
+                            <div id="engineQuizFeedback" class="hidden p-2 rounded text-[11px] font-medium"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+
+        <!-- ========================================================================= -->
+        <!-- MODUL 4: ENTROPI, KETIDAKTERATURAN, & ARAH PROSES ALAMIAH                -->
+        <!-- ========================================================================= -->
+        <section id="tab-entropi" class="tab-content hidden space-y-6">
+            <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-5 shadow-xl">
+                <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    <div>
+                        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-400 text-xs font-semibold mb-2">
+                            <i class="fa-solid fa-arrow-trend-up"></i> Konsep Mikroskopis Termodinamika
+                        </div>
+                        <h2 class="text-2xl font-bold text-white">Modul 4: Entropi & Arah Alamiah Proses</h2>
+                        <p class="text-sm text-slate-400 mt-1">Mengapa kalor selalu mengalir spontan dari benda panas ke dingin, dan tidak pernah sebaliknya?</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                <!-- Visual Canvas Simulasi Entropi Partikel -->
+                <div class="lg:col-span-7 space-y-4">
+                    <div class="canvas-container p-4">
+                        <div class="flex justify-between items-center mb-2 px-2 text-xs font-mono text-slate-400">
+                            <span><i class="fa-solid fa-shuffle text-amber-400"></i> SIMULASI DIFUSI & KETIDAKTERATURAN ($S = k \ln \Omega$)</span>
+                            <span id="entropyStateBadge" class="px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/30">Terpisah (Entropi Rendah)</span>
+                        </div>
+                        <canvas id="canvasEntropy" width="600" height="380" class="w-full h-auto rounded-lg bg-slate-950 border border-slate-800"></canvas>
+                        
+                        <div class="mt-3 p-3 bg-slate-900/90 rounded-xl border border-slate-800 flex justify-between items-center font-mono text-xs">
+                            <span class="text-slate-400">TINGKAT ENTROPI KELOMPOK (S):</span>
+                            <span id="entropyValueText" class="text-amber-400 font-bold text-sm">Rendah (S₀)</span>
+                        </div>
+                    </div>
+
+                    <!-- KBC Card: Cinta Allah SWT -->
+                    <div class="kbc-card-allah p-4 rounded-xl text-xs space-y-1.5">
+                        <div class="flex items-center gap-2 font-semibold text-amber-300">
+                            <i class="fa-solid fa-kaaba"></i> <span>Tafakur Termodinamika: Arah Waktu & Keteraturan Ilahi</span>
+                        </div>
+                        <p class="text-slate-300 leading-relaxed">
+                            Proses alamiah di alam semesta secara spontan selalu mengarah pada peningkatan entropi (ketidakteraturan). Fenomena "Panah Waktu" (*Arrow of Time*) ini adalah bukti bahwa alam raya berjalan menuju suatu titik akhir yang telah ditetapkan. Tanpa intervensi daya dan energi dari Allah SWT, kehidupan tidak akan mampu mempertahankan strukturnya yang teratur.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Entropy Controls & Refractive Inquiry -->
+                <div class="lg:col-span-5 space-y-4">
+                    <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 space-y-4">
+                        <h3 class="text-sm font-semibold text-slate-200 border-b border-slate-800 pb-2">
+                            Simulasi Pencampuran Partikel Spontan:
+                        </h3>
+
+                        <p class="text-xs text-slate-300 leading-relaxed">
+                            Tekan tombol di bawah untuk mencabut sekat pemisah antara gas panas (merah) dan gas dingin (biru). Amati bagaimana partikel bercampur secara irreversibel.
+                        </p>
+
+                        <div class="flex gap-2">
+                            <button onclick="removeEntropyBarrier()" id="btnRemoveBarrier" class="flex-1 py-2.5 bg-amber-600 hover:bg-amber-500 text-white rounded-xl text-xs font-bold transition flex items-center justify-center gap-2 shadow-lg shadow-amber-600/20">
+                                <i class="fa-solid fa-door-open"></i> Buka Sekat Pemisah
+                            </button>
+                            <button onclick="resetEntropySim()" class="py-2.5 px-4 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-xs font-semibold transition">
+                                Reset
+                            </button>
+                        </div>
+
+                        <div class="bg-slate-950 p-3.5 rounded-xl border border-slate-800 text-xs space-y-2">
+                            <div class="font-semibold text-slate-200">Prinsip Arah Proses (Hukum II):</div>
+                            <ul class="list-disc list-inside text-slate-400 space-y-1 text-[11px]">
+                                <li>Partikel gas bercampur secara alami hingga mencapai kesetimbangan termal.</li>
+                                <li>Sangat mustahil secara statistik bagi partikel yang telah bercampur untuk kembali terpisah dengan sendirinya tanpa energi luar.</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+
+        <!-- ========================================================================= -->
+        <!-- MODUL 5: LABORATORIUM VIRTUAL, QUIZ INQUIRY, & REFLEKSI KBC               -->
+        <!-- ========================================================================= -->
+        <section id="tab-lab" class="tab-content hidden space-y-6">
+            <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-5 shadow-xl">
+                <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    <div>
+                        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-brand-500/10 border border-brand-500/20 text-brand-400 text-xs font-semibold mb-2">
+                            <i class="fa-solid fa-vial-circle-check"></i> Laboratorium Eksperimen Mandiri
+                        </div>
+                        <h2 class="text-2xl font-bold text-white">Modul 5: Lab Virtual, Analisis Data & Evaluasi Konseptual</h2>
+                        <p class="text-sm text-slate-400 mt-1">Uji pemahamanmu, catat tabel pengamatan eksperimen virtual, dan selesaikan tantangan studi kasus Termodinamika.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                <!-- Virtual Lab Table & Experiment Runner -->
+                <div class="lg:col-span-7 space-y-4">
+                    <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 space-y-4">
+                        <div class="flex justify-between items-center border-b border-slate-800 pb-3">
+                            <h3 class="text-sm font-semibold text-slate-200 flex items-center gap-2">
+                                <i class="fa-solid fa-table text-brand-400"></i> Tabel Pencatatan Data Eksperimen Gas
+                            </h3>
+                            <button onclick="clearLabData()" class="text-xs text-rose-400 hover:text-rose-300">Hapus Data</button>
+                        </div>
+
+                        <p class="text-xs text-slate-300">
+                            Tekan tombol di bawah untuk merekam koordinat keadaan ($P, V, T$) dari simulasi aktif ke dalam tabel pengamatan untuk dianalisis:
+                        </p>
+
+                        <div class="flex gap-2">
+                            <button onclick="recordLabData()" class="py-2 px-4 bg-brand-600 hover:bg-brand-500 text-white rounded-lg text-xs font-semibold transition flex items-center gap-1.5">
+                                <i class="fa-solid fa-plus"></i> Rekam Keadaan Saat Ini
+                            </button>
+                        </div>
+
+                        <!-- Data Table -->
+                        <div class="overflow-x-auto border border-slate-800 rounded-xl">
+                            <table class="w-full text-xs font-mono text-left text-slate-300">
+                                <thead class="bg-slate-950 text-slate-400 border-b border-slate-800">
+                                    <tr>
+                                        <th class="p-2.5">No</th>
+                                        <th class="p-2.5">Tekanan P (kPa)</th>
+                                        <th class="p-2.5">Volume V (L)</th>
+                                        <th class="p-2.5">Suhu T (K)</th>
+                                        <th class="p-2.5">P × V</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="labTableBody">
+                                    <tr>
+                                        <td colspan="5" class="p-4 text-center text-slate-500 italic">Belum ada data yang direkam. Gunakan tombol di atas untuk merekam data dari simulasi!</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- KBC Reflection Project Card -->
+                    <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 space-y-3">
+                        <h3 class="text-xs font-bold text-amber-400 uppercase tracking-wider flex items-center gap-2">
+                            <i class="fa-solid fa-hand-holding-heart"></i> Proyek Refleksi Kurikulum Berbasis Cinta (KBC)
+                        </h3>
+                        <p class="text-xs text-slate-300 leading-relaxed">
+                            Pilihlah salah satu ide proyek nyata sederhana di lingkungan rumah/madrasahmu:
+                        </p>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
+                            <div class="p-3 bg-slate-950 rounded-xl border border-slate-800 space-y-1">
+                                <div class="font-bold text-brand-400"><i class="fa-solid fa-fan mr-1"></i> Analisis Pelepasan Panas AC</div>
+                                <p class="text-slate-400 text-[11px]">Amati unit outdoor AC di sekolah. Hitung berapa besar kalor terbuang $Q_C$ ke lingkungan dan usulkan ide penghijauan di sekitarnya.</p>
+                            </div>
+                            <div class="p-3 bg-slate-950 rounded-xl border border-slate-800 space-y-1">
+                                <div class="font-bold text-emerald-400"><i class="fa-solid fa-mug-hot mr-1"></i> Efisiensi Thermos Air</div>
+                                <p class="text-slate-400 text-[11px]">Uji isolasi termal wadah air di rumah untuk mencegah perpindahan kalor secara konduksi, konveksi, dan radiasi.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Guided Interactive Scaffolding Quiz -->
+                <div class="lg:col-span-5 space-y-4">
+                    <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 space-y-4">
+                        <div class="flex justify-between items-center border-b border-slate-800 pb-2">
+                            <h3 class="text-sm font-semibold text-slate-200 flex items-center gap-2">
+                                <i class="fa-solid fa-circle-question text-indigo-400"></i> Kuis Evaluasi Berjenjang (Scaffolding)
+                            </h3>
+                            <span id="quizScoreText" class="text-xs font-mono text-emerald-400 font-bold">Skor: 0</span>
+                        </div>
+
+                        <!-- Quiz Container Dynamic -->
+                        <div id="quizContainer" class="space-y-3 text-xs">
+                            <!-- Question Text -->
+                            <div class="font-medium text-slate-200" id="quizQuestionText">
+                                Loading soal evaluasi...
+                            </div>
+
+                            <!-- Options -->
+                            <div class="space-y-2" id="quizOptionsContainer"></div>
+
+                            <!-- Hint & Scaffolding Box -->
+                            <div id="quizHintBox" class="hidden p-3 bg-indigo-950/50 border border-indigo-800/60 rounded-xl text-indigo-300 text-[11px]">
+                                <i class="fa-solid fa-circle-info mr-1"></i> <span id="quizHintText">Petunjuk...</span>
+                            </div>
+
+                            <!-- Quiz Navigation -->
+                            <div class="flex justify-between items-center pt-2">
+                                <button onclick="getQuizHint()" class="text-xs text-amber-400 hover:text-amber-300 font-medium flex items-center gap-1">
+                                    <i class="fa-solid fa-lightbulb"></i> Butuh Petunjuk?
+                                </button>
+                                <button onclick="nextQuizQuestion()" id="btnNextQuiz" class="px-3 py-1.5 bg-brand-600 hover:bg-brand-500 text-white rounded-lg text-xs font-semibold transition hidden">
+                                    Soal Berikutnya <i class="fa-solid fa-arrow-right ml-1"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="bg-slate-900 border-t border-slate-800 py-4 text-center text-xs text-slate-500 mt-auto">
+        <div class="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row justify-between items-center gap-2">
+            <div>
+                © 2026 TermoVerse EdTech • Pengembangan Kurikulum Fisika SMA/MA & Integrasi KBC Kemenag RI
+            </div>
+            <div class="flex gap-3 text-slate-400">
+                <span>Inquiry Learning</span> • <span>Computational Thinking</span> • <span>Praktikum Virtual</span>
+            </div>
+        </div>
+    </footer>
+
+
+    <script>
+        /* ========================================================================= */
+        /* LOGIKA NAVIGASI TAB & STATE APLIKASI UTAMA                               */
+        /* ========================================================================= */
+        function switchTab(tabId) {
+            /* Hide all contents */
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            /* Deactivate all buttons */
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                btn.classList.remove('bg-brand-600', 'text-white');
+                btn.classList.add('text-slate-400');
+            });
+
+            /* Show active tab */
+            document.getElementById(tabId).classList.remove('hidden');
+            /* Activate button */
+            const activeBtn = document.getElementById('nav-' + tabId);
+            activeBtn.classList.add('bg-brand-600', 'text-white');
+            activeBtn.classList.remove('text-slate-400');
+
+            /* Resize & redraw canvases when revealed */
+            setTimeout(() => {
+                resizeAndRedrawAll();
+            }, 50);
+        }
+
+        /* Resize Handler for Canvases */
+        function resizeAndRedrawAll() {
+            initPistonCanvas();
+            initPVCanvas();
+            initEngineCanvas();
+            initEntropyCanvas();
+        }
+
+        window.addEventListener('resize', resizeAndRedrawAll);
+
+
+        /* ========================================================================= */
+        /* MODUL 1: SIMULASI PISTON & PARTIKEL GAS IDEAL                             */
+        /* ========================================================================= */
+        let pistonState = {
+            P: 101.3, // kPa
+            V: 2.0,   // Liters
+            T: 300.0, // Kelvin
+            U: 374.1, // Joules (Internal Energy = 3/2 n R T)
+            particles: [],
+            isPistonLocked: false,
+            isConstantP: false,
+            pistonY: 120, // Canvas pixel height for piston
+        };
+
+        const NUM_PARTICLES = 40;
+
+        function initPistonParticles() {
+            pistonState.particles = [];
+            for (let i = 0; i < NUM_PARTICLES; i++) {
+                pistonState.particles.push({
+                    x: 40 + Math.random() * 220,
+                    y: pistonState.pistonY + 20 + Math.random() * (260 - pistonState.pistonY),
+                    vx: (Math.random() - 0.5) * Math.sqrt(pistonState.T / 100) * 3,
+                    vy: (Math.random() - 0.5) * Math.sqrt(pistonState.T / 100) * 3
+                });
+            }
+        }
+
+        function initPistonCanvas() {
+            const canvas = document.getElementById('canvasPiston');
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+            if (pistonState.particles.length === 0) initPistonParticles();
+
+            // Main Animation Loop for Piston
+            function animatePiston() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+                // Draw Container Cylinder
+                ctx.strokeStyle = '#475569';
+                ctx.lineWidth = 6;
+                ctx.strokeRect(35, 50, 250, 280);
+
+                // Calculate Piston Position based on Volume V (2L -> y=160, 4L -> y=60)
+                const targetPistonY = 280 - (pistonState.V / 4.0) * 220;
+                pistonState.pistonY += (targetPistonY - pistonState.pistonY) * 0.1; // Smooth interpolate
+
+                // Draw Piston Head
+                ctx.fillStyle = '#64748b';
+                ctx.fillRect(38, pistonState.pistonY, 244, 18);
+                ctx.fillStyle = '#334155';
+                ctx.fillRect(150, 20, 20, pistonState.pistonY - 20); // Rod
+
+                // Heat/Ice Source Visuals at bottom
+                ctx.fillStyle = '#1e293b';
+                ctx.fillRect(40, 335, 240, 30);
+
+                // Update & Render Particles
+                const speedFactor = Math.sqrt(pistonState.T / 300.0);
+                ctx.fillStyle = pistonState.T > 400 ? '#f87171' : (pistonState.T < 250 ? '#60a5fa' : '#38bdf8');
+
+                for (let p of pistonState.particles) {
+                    p.x += p.vx * speedFactor;
+                    p.y += p.vy * speedFactor;
+
+                    // Bounce off cylinder walls
+                    if (p.x <= 42 || p.x >= 278) p.vx *= -1;
+                    if (p.y <= pistonState.pistonY + 22) {
+                        p.y = pistonState.pistonY + 23;
+                        p.vy *= -1;
+                    }
+                    if (p.y >= 325) p.vy *= -1;
+
+                    ctx.beginPath();
+                    ctx.arc(p.x, p.y, 4, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+
+                // Draw Energy Gauge Cards on Right Side of Canvas
+                ctx.fillStyle = '#0f172a';
+                ctx.fillRect(320, 50, 250, 280);
+                ctx.strokeStyle = '#334155';
+                ctx.lineWidth = 1;
+                ctx.strokeRect(320, 50, 250, 280);
+
+                ctx.fillStyle = '#f8fafc';
+                ctx.font = 'bold 12px Inter';
+                ctx.fillText('DIAGRAM PERPINDAHAN ENERGI', 335, 75);
+
+                // Draw Q, W, dU Bar Charts
+                drawBarGraph(ctx, 340, 110, 'Q (Kalor)', lastQ, '#f59e0b');
+                drawBarGraph(ctx, 340, 170, 'W (Usaha)', lastW, '#6366f1');
+                drawBarGraph(ctx, 340, 230, 'ΔU (Energi Dalam)', lastdU, '#10b981');
+
+                requestAnimationFrame(animatePiston);
+            }
+
+            animatePiston();
+        }
+
+        let lastQ = 0, lastW = 0, lastdU = 0;
+
+        function drawBarGraph(ctx, x, y, label, val, color) {
+            ctx.fillStyle = '#94a3b8';
+            ctx.font = '10px JetBrains Mono';
+            ctx.fillText(`${label}: ${val >= 0 ? '+' : ''}${val.toFixed(1)} J`, x, y);
+
+            ctx.fillStyle = '#1e293b';
+            ctx.fillRect(x, y + 5, 210, 14);
+
+            const barWidth = Math.min(210, Math.max(-210, (val / 500) * 210));
+            ctx.fillStyle = color;
+            if (barWidth >= 0) {
+                ctx.fillRect(x, y + 5, barWidth, 14);
+            } else {
+                ctx.fillRect(x + 105, y + 5, barWidth, 14);
+            }
+        }
+
+        function applyHeat(qAmount) {
+            lastQ += qAmount;
+            if (pistonState.isPistonLocked) {
+                // Isochoric: V constant, W = 0, dU = Q -> T increases
+                lastW = 0;
+                lastdU = lastQ;
+                pistonState.T += qAmount / 5.0;
+                pistonState.P = (pistonState.T / 300.0) * 101.3;
+            } else if (pistonState.isConstantP) {
+                // Isobaric: P constant, V increases, W = P dV
+                pistonState.T += qAmount / 8.0;
+                pistonState.V = (pistonState.T / 300.0) * 2.0;
+                lastW = pistonState.P * (pistonState.V - 2.0) * 2.5;
+                lastdU = lastQ - lastW;
+            } else {
+                // General
+                pistonState.T += qAmount / 6.0;
+                pistonState.V += qAmount / 600.0;
+                pistonState.P = (pistonState.T / 300.0) * (2.0 / pistonState.V) * 101.3;
+                lastW = lastQ * 0.4;
+                lastdU = lastQ - lastW;
+            }
+
+            pistonState.V = Math.max(0.8, Math.min(3.8, pistonState.V));
+            pistonState.T = Math.max(100, Math.min(800, pistonState.T));
+            pistonState.U = 1.25 * 1.0 * 8.314 * pistonState.T;
+
+            updateGauges();
+        }
+
+        function movePiston(dV) {
+            if (pistonState.isPistonLocked) return;
+            pistonState.V = Math.max(0.8, Math.min(3.8, pistonState.V + dV));
+            const wWork = pistonState.P * dV * 2.5;
+            lastW += wWork;
+            pistonState.T -= wWork / 6.0; // Compression heats, expansion cools
+            pistonState.P = (pistonState.T / 300.0) * (2.0 / pistonState.V) * 101.3;
+            lastdU = -lastW;
+
+            updateGauges();
+        }
+
+        function toggleLockPiston(isLocked) {
+            pistonState.isPistonLocked = isLocked;
+            if (isLocked) {
+                document.getElementById('constantPCheck').checked = false;
+                pistonState.isConstantP = false;
+            }
+        }
+
+        function toggleConstantP(isConstant) {
+            pistonState.isConstantP = isConstant;
+            if (isConstant) {
+                document.getElementById('lockPistonCheck').checked = false;
+                pistonState.isPistonLocked = false;
+            }
+        }
+
+        function resetSystem() {
+            pistonState.P = 101.3;
+            pistonState.V = 2.0;
+            pistonState.T = 300.0;
+            pistonState.U = 374.1;
+            lastQ = 0; lastW = 0; lastdU = 0;
+            updateGauges();
+        }
+
+        function updateGauges() {
+            document.getElementById('gaugeP').innerText = pistonState.P.toFixed(1) + ' kPa';
+            document.getElementById('gaugeV').innerText = pistonState.V.toFixed(2) + ' L';
+            document.getElementById('gaugeT').innerText = pistonState.T.toFixed(1) + ' K';
+            document.getElementById('gaugeU').innerText = pistonState.U.toFixed(1) + ' J';
+
+            document.getElementById('qValueText').innerText = (lastQ >= 0 ? '+' : '') + lastQ.toFixed(0) + ' J';
+            document.getElementById('wValueText').innerText = (lastW >= 0 ? '+' : '') + lastW.toFixed(0) + ' J';
+        }
+
+        function checkInquiryM1(btn, isCorrect) {
+            const fb = document.getElementById('m1Feedback');
+            fb.classList.remove('hidden', 'bg-emerald-500/20', 'text-emerald-300', 'bg-rose-500/20', 'text-rose-300');
+            if (isCorrect) {
+                fb.classList.add('bg-emerald-500/20', 'text-emerald-300');
+                fb.innerHTML = '<i class="fa-solid fa-circle-check"></i> Tepat sekali! Karena volume tetap ($\Delta V = 0$), usaha $W = 0$. Sesuai Hukum I Termodinamika ($\Delta U = Q - W$), seluruh kalor diubah menjadi Energi Dalam.';
+            } else {
+                fb.classList.add('bg-rose-500/20', 'text-rose-300');
+                fb.innerHTML = '<i class="fa-solid fa-circle-xmark"></i> Kurang tepat. Ingat bahwa Usaha $W = P \Delta V$. Jika volume tidak berubah, gas tidak melakukan usaha!';
+            }
+        }
+
+
+        /* ========================================================================= */
+        /* MODUL 2: PROSES TERMODINAMIKA & DIAGRAM P-V                              */
+        /* ========================================================================= */
+        let currentProcessType = 'isobaric';
+        let processProgress = 0;
+
+        function selectProcess(type) {
+            currentProcessType = type;
+            document.querySelectorAll('.process-btn').forEach(btn => {
+                btn.classList.remove('bg-brand-600/20', 'text-brand-300', 'border-brand-500');
+                btn.classList.add('bg-slate-950', 'text-slate-400', 'border-slate-800');
+            });
+
+            const activeBtn = document.getElementById('btn-' + type);
+            activeBtn.classList.add('bg-brand-600/20', 'text-brand-300', 'border-brand-500');
+
+            const info = {
+                isobaric: { title: 'Proses Isobarik (P = Konstan)', formula: 'W = P(V₂ - V₁)', desc: 'Tekanan gas dijaga tetap sementara suhu dan volume berubah secara proporsional ($V \propto T$).' },
+                isochoric: { title: 'Proses Isokhorik (V = Konstan)', formula: 'W = 0', desc: 'Volume gas tidak berubah. Karena tidak ada pergeseran dinding piston, Usaha W = 0.' },
+                isothermal: { title: 'Proses Isotermal (T = Konstan)', formula: 'W = nRT ln(V₂/V₁)', desc: 'Suhu dijaga konstan melalui pertukaran kalor secara perlahan dengan reservoir.' },
+                adiabatic: { title: 'Proses Adiabatik (Q = 0)', formula: 'W = -ΔU', desc: 'Tidak ada kalor yang masuk/keluar sistem. Ekspansi menyebabkan suhu gas turun dramatis.' }
+            }[type];
+
+            document.getElementById('procTitle').innerText = info.title;
+            document.getElementById('procFormula').innerText = info.formula;
+            document.getElementById('procDesc').innerText = info.desc;
+            document.getElementById('processNameBadge').innerText = info.title;
+
+            processProgress = 0;
+            document.getElementById('procSlider').value = 0;
+            initPVCanvas();
+        }
+
+        function updateProcessProgress(val) {
+            processProgress = val / 100.0;
+            initPVCanvas();
+        }
+
+        function runProcessAnimation() {
+            let p = 0;
+            const timer = setInterval(() => {
+                p += 2;
+                if (p > 100) {
+                    clearInterval(timer);
+                } else {
+                    document.getElementById('procSlider').value = p;
+                    updateProcessProgress(p);
+                }
+            }, 30);
+        }
+
+        function initPVCanvas() {
+            const canvas = document.getElementById('canvasPV');
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Draw Axes
+            ctx.strokeStyle = '#475569';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(50, 320); ctx.lineTo(550, 320); // V Axis
+            ctx.moveTo(50, 320); ctx.lineTo(50, 30);   // P Axis
+            ctx.stroke();
+
+            ctx.fillStyle = '#94a3b8';
+            ctx.font = '11px JetBrains Mono';
+            ctx.fillText('Volume V (L) →', 470, 345);
+            ctx.fillText('Tekanan P (kPa) ↑', 60, 45);
+
+            // Coordinates calculation for 4 processes
+            let V1 = 100, P1 = 80;
+            let V2 = 400, P2 = 80;
+            let W = 0, dU = 0, Q = 0;
+
+            if (currentProcessType === 'isobaric') {
+                P2 = P1;
+                V2 = 100 + processProgress * 300;
+                W = P1 * (V2 - V1) * 0.008;
+                dU = W * 1.5; Q = W + dU;
+            } else if (currentProcessType === 'isochoric') {
+                V2 = V1;
+                P2 = 80 + processProgress * 180;
+                W = 0;
+                dU = (P2 - P1) * 2.0; Q = dU;
+            } else if (currentProcessType === 'isothermal') {
+                V2 = 100 + processProgress * 300;
+                P2 = (80 * 100) / V2;
+                W = 80 * 100 * Math.log(V2 / V1) * 0.05;
+                dU = 0; Q = W;
+            } else if (currentProcessType === 'adiabatic') {
+                V2 = 100 + processProgress * 300;
+                P2 = 80 * Math.pow(100 / V2, 1.4);
+                W = (80 * 100 - P2 * V2) * 0.08;
+                dU = -W; Q = 0;
+            }
+
+            // Shade Area Under Curve (Work W)
+            ctx.fillStyle = 'rgba(99, 102, 241, 0.25)';
+            ctx.beginPath();
+            ctx.moveTo(50 + V1, 320);
+
+            if (currentProcessType === 'isobaric') {
+                ctx.lineTo(50 + V1, 320 - P1);
+                ctx.lineTo(50 + V2, 320 - P2);
+                ctx.lineTo(50 + V2, 320);
+            } else if (currentProcessType === 'isochoric') {
+                // Line has zero width
+            } else {
+                ctx.lineTo(50 + V1, 320 - P1);
+                for (let v = V1; v <= V2; v += 5) {
+                    let p = currentProcessType === 'isothermal' ? (80 * 100) / v : 80 * Math.pow(100 / v, 1.4);
+                    ctx.lineTo(50 + v, 320 - p);
+                }
+                ctx.lineTo(50 + V2, 320);
+            }
+            ctx.closePath();
+            ctx.fill();
+
+            // Draw Curve Line
+            ctx.strokeStyle = '#38bdf8';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.moveTo(50 + V1, 320 - P1);
+
+            if (currentProcessType === 'isobaric' || currentProcessType === 'isochoric') {
+                ctx.lineTo(50 + V2, 320 - P2);
+            } else {
+                for (let v = V1; v <= V2; v += 5) {
+                    let p = currentProcessType === 'isothermal' ? (80 * 100) / v : 80 * Math.pow(100 / v, 1.4);
+                    ctx.lineTo(50 + v, 320 - p);
+                }
+            }
+            ctx.stroke();
+
+            // Draw State Points
+            drawPoint(ctx, 50 + V1, 320 - P1, 'Keadaan 1', '#eab308');
+            drawPoint(ctx, 50 + V2, 320 - P2, 'Keadaan 2', '#10b981');
+
+            // Update UI Numbers
+            document.getElementById('pvCalcW').innerText = (W >= 0 ? '+' : '') + W.toFixed(1) + ' J';
+            document.getElementById('pvCalcdU').innerText = (dU >= 0 ? '+' : '') + dU.toFixed(1) + ' J';
+            document.getElementById('pvCalcQ').innerText = (Q >= 0 ? '+' : '') + Q.toFixed(1) + ' J';
+        }
+
+        function drawPoint(ctx, x, y, label, color) {
+            ctx.fillStyle = color;
+            ctx.beginPath();
+            ctx.arc(x, y, 6, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.fillStyle = '#f8fafc';
+            ctx.font = '10px Inter';
+            ctx.fillText(label, x + 8, y - 8);
+        }
+
+
+        /* ========================================================================= */
+        /* MODUL 3: MESIN KALOR & EFISIENSI CARNOT                                   */
+        /* ========================================================================= */
+        let TH = 600, TC = 300;
+
+        function updateEngineParams() {
+            TH = parseInt(document.getElementById('thSlider').value);
+            TC = parseInt(document.getElementById('tcSlider').value);
+
+            // Ensure TH > TC
+            if (TC >= TH) {
+                TC = TH - 50;
+                document.getElementById('tcSlider').value = TC;
+            }
+
+            document.getElementById('thVal').innerText = `${TH} K (${TH - 273} °C)`;
+            document.getElementById('tcVal').innerText = `${TC} K (${TC - 273} °C)`;
+
+            const eff = (1 - TC / TH) * 100;
+            document.getElementById('carnotEffBadge').innerText = `Efisiensi Carnot: ${eff.toFixed(1)}%`;
+
+            const QH = 1000;
+            const W = QH * (eff / 100);
+            const QC = QH - W;
+
+            document.getElementById('engQH').innerText = `${QH.toFixed(0)} J`;
+            document.getElementById('engW').innerText = `${W.toFixed(0)} J`;
+            document.getElementById('engQC').innerText = `${QC.toFixed(0)} J`;
+
+            initEngineCanvas();
+        }
+
+        function initEngineCanvas() {
+            const canvas = document.getElementById('canvasEngine');
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Draw Reservoir Panas (TH)
+            ctx.fillStyle = '#b45309';
+            ctx.fillRect(200, 30, 200, 50);
+            ctx.fillStyle = '#fef3c7';
+            ctx.font = 'bold 12px Inter';
+            ctx.fillText(`RESERVOIR PANAS (T_H = ${TH} K)`, 215, 60);
+
+            // Draw Reservoir Dingin (TC)
+            ctx.fillStyle = '#1e3a8a';
+            ctx.fillRect(200, 300, 200, 50);
+            ctx.fillStyle = '#dbeafe';
+            ctx.fillText(`RESERVOIR DINGIN (T_C = ${TC} K)`, 215, 330);
+
+            // Draw Engine Cylinder Body
+            ctx.fillStyle = '#334155';
+            ctx.beginPath();
+            ctx.arc(300, 190, 50, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.strokeStyle = '#64748b';
+            ctx.lineWidth = 4;
+            ctx.stroke();
+
+            ctx.fillStyle = '#f8fafc';
+            ctx.font = 'bold 11px Inter';
+            ctx.fillText('MESIN KALOR', 262, 194);
+
+            // Arrows Flow
+            // QH Arrow (Down)
+            drawArrow(ctx, 300, 80, 300, 140, '#f59e0b', 'Q_H = 1000 J');
+            // W Arrow (Right)
+            drawArrow(ctx, 350, 190, 480, 190, '#6366f1', `W = ${(1000 * (1 - TC / TH)).toFixed(0)} J`);
+            // QC Arrow (Down to Cold)
+            drawArrow(ctx, 300, 240, 300, 300, '#ef4444', `Q_C = ${(1000 * (TC / TH)).toFixed(0)} J`);
+        }
+
+        function drawArrow(ctx, fromx, fromy, tox, toy, color, text) {
+            ctx.strokeStyle = color;
+            ctx.fillStyle = color;
+            ctx.lineWidth = 6;
+
+            ctx.beginPath();
+            ctx.moveTo(fromx, fromy);
+            ctx.lineTo(tox, toy);
+            ctx.stroke();
+
+            // Arrow head
+            const angle = Math.atan2(toy - fromy, tox - fromx);
+            ctx.beginPath();
+            ctx.moveTo(tox, toy);
+            ctx.lineTo(tox - 12 * Math.cos(angle - Math.PI / 6), toy - 12 * Math.sin(angle - Math.PI / 6));
+            ctx.lineTo(tox - 12 * Math.cos(angle + Math.PI / 6), toy - 12 * Math.sin(angle + Math.PI / 6));
+            ctx.fill();
+
+            if (text) {
+                ctx.fillStyle = '#f8fafc';
+                ctx.font = '11px JetBrains Mono';
+                ctx.fillText(text, (fromx + tox) / 2 + 10, (fromy + toy) / 2 - 5);
+            }
+        }
+
+        function checkEngineQuiz(btn, isCorrect) {
+            const fb = document.getElementById('engineQuizFeedback');
+            fb.classList.remove('hidden', 'bg-emerald-500/20', 'text-emerald-300', 'bg-rose-500/20', 'text-rose-300');
+            if (isCorrect) {
+                fb.classList.add('bg-emerald-500/20', 'text-emerald-300');
+                fb.innerHTML = '<i class="fa-solid fa-circle-check"></i> Tepat sekali! Meningkatkan suhu $T_H$ memperbesar nilai selisih $(1 - T_C/T_H)$, sehingga efisiensi $\eta$ meningkat dan pembuangan panas terbuang berkurang.';
+            } else {
+                fb.classList.add('bg-rose-500/20', 'text-rose-300');
+                fb.innerHTML = '<i class="fa-solid fa-circle-xmark"></i> Kurang tepat. Membuang lebih banyak panas justru menurunkan efisiensi mesin dan memperparah polusi termal lingkungan.';
+            }
+        }
+
+
+        /* ========================================================================= */
+        /* MODUL 4: ENTROPI SIMULATION                                              */
+        /* ========================================================================= */
+        let entropyParticles = [];
+        let isBarrierRemoved = false;
+
+        function initEntropyCanvas() {
+            const canvas = document.getElementById('canvasEntropy');
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+
+            if (entropyParticles.length === 0) {
+                for (let i = 0; i < 40; i++) {
+                    entropyParticles.push({
+                        x: 50 + Math.random() * 220,
+                        y: 50 + Math.random() * 280,
+                        vx: (Math.random() - 0.5) * 4,
+                        vy: (Math.random() - 0.5) * 4,
+                        color: '#f87171' // Hot red
+                    });
+                    entropyParticles.push({
+                        x: 330 + Math.random() * 220,
+                        y: 50 + Math.random() * 280,
+                        vx: (Math.random() - 0.5) * 2,
+                        vy: (Math.random() - 0.5) * 2,
+                        color: '#60a5fa' // Cold blue
+                    });
+                }
+            }
+
+            function animateEntropy() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+                // Container
+                ctx.strokeStyle = '#475569';
+                ctx.lineWidth = 4;
+                ctx.strokeRect(40, 40, 520, 300);
+
+                // Barrier Line
+                if (!isBarrierRemoved) {
+                    ctx.strokeStyle = '#e2e8f0';
+                    ctx.lineWidth = 6;
+                    ctx.beginPath();
+                    ctx.moveTo(300, 40); ctx.lineTo(300, 340);
+                    ctx.stroke();
+                }
+
+                // Particles Logic
+                for (let p of entropyParticles) {
+                    p.x += p.vx; p.y += p.vy;
+
+                    // Walls
+                    if (p.x <= 45 || p.x >= 555) p.vx *= -1;
+                    if (p.y <= 45 || p.y >= 335) p.vy *= -1;
+
+                    // Barrier collision
+                    if (!isBarrierRemoved) {
+                        if (p.x >= 292 && p.x <= 308) p.vx *= -1;
+                    }
+
+                    ctx.fillStyle = p.color;
+                    ctx.beginPath();
+                    ctx.arc(p.x, p.y, 5, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+
+                requestAnimationFrame(animateEntropy);
+            }
+
+            animateEntropy();
+        }
+
+        function removeEntropyBarrier() {
+            isBarrierRemoved = true;
+            document.getElementById('entropyStateBadge').innerText = 'Bercampur (Entropi Maksimum)';
+            document.getElementById('entropyValueText').innerText = 'Maksimum (S_max)';
+        }
+
+        function resetEntropySim() {
+            isBarrierRemoved = false;
+            entropyParticles = [];
+            document.getElementById('entropyStateBadge').innerText = 'Terpisah (Entropi Rendah)';
+            document.getElementById('entropyValueText').innerText = 'Rendah (S₀)';
+            initEntropyCanvas();
+        }
+
+
+        /* ========================================================================= */
+        /* MODUL 5: LAB VIRTUAL & QUIZ EVALUATION                                    */
+        /* ========================================================================= */
+        let labRecordedData = [];
+
+        function recordLabData() {
+            labRecordedData.push({
+                no: labRecordedData.length + 1,
+                P: pistonState.P.toFixed(1),
+                V: pistonState.V.toFixed(2),
+                T: pistonState.T.toFixed(1),
+                PV: (pistonState.P * pistonState.V).toFixed(1)
+            });
+
+            renderLabTable();
+        }
+
+        function clearLabData() {
+            labRecordedData = [];
+            renderLabTable();
+        }
+
+        function renderLabTable() {
+            const tbody = document.getElementById('labTableBody');
+            if (labRecordedData.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" class="p-4 text-center text-slate-500 italic">Belum ada data yang direkam. Gunakan tombol di atas untuk merekam data dari simulasi!</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = labRecordedData.map(d => `
+                <tr class="border-b border-slate-800 hover:bg-slate-900">
+                    <td class="p-2.5">${d.no}</td>
+                    <td class="p-2.5 text-sky-400">${d.P}</td>
+                    <td class="p-2.5 text-amber-400">${d.V}</td>
+                    <td class="p-2.5 text-rose-400">${d.T}</td>
+                    <td class="p-2.5 text-emerald-400">${d.PV}</td>
+                </tr>
+            `).join('');
+        }
+
+        /* Guided Quiz Database with Scaffolding Hints */
+        const quizQuestions = [
+            {
+                q: "1. Pada proses pemanasan gas ideal secara ISOKHORIK (Volume Tetap), manakah pernyataan berikut yang paling tepat sesuai Hukum I Termodinamika?",
+                options: [
+                    "A. Seluruh kalor yang diberikan diubah menjadi usaha luar (W = Q)",
+                    "B. Gas tidak melakukan usaha luar (W = 0) sehingga seluruh kalor meningkatkan energi dalam (ΔU = Q)",
+                    "C. Suhu gas pasti menurun karena tekanan meningkat",
+                    "D. Energi dalam gas bernilai nol"
+                ],
+                correct: 1,
+                hint: "Ingat definisi usaha W = P · ΔV. Jika volume sistem konstan, berapa perubahan volumenya (ΔV)?"
+            },
+            {
+                q: "2. Sebuah mesin Carnot bekerja di antara reservoir panas 800 K dan reservoir dingin 400 K. Berapakah efisiensi termal maksimum mesin tersebut?",
+                options: [
+                    "A. 25%",
+                    "B. 50%",
+                    "C. 75%",
+                    "D. 100%"
+                ],
+                correct: 1,
+                hint: "Gunakan rumus efisiensi Carnot: η = (1 - T_C / T_H) × 100%. Substitusikan T_C = 400 K dan T_H = 800 K."
+            },
+            {
+                q: "3. Mengapa energi panas dari lingkungan dingin tidak dapat secara spontan mengalir ke benda panas tanpa bantuan usaha dari luar?",
+                options: [
+                    "A. Melanggar Hukum Kekekalan Energi (Hukum I)",
+                    "B. Sesuai dengan pembatasan Hukum II Termodinamika terkait Entropi total alam semesta",
+                    "C. Karena kalor tidak memiliki massa",
+                    "D. Karena partikel dingin bergerak lebih cepat"
+                ],
+                correct: 1,
+                hint: "Arah aliran alamiah selalu meningkatkan entropi total (Hukum II Termodinamika)."
+            }
+        ];
+
+        let currentQuizIndex = 0;
+        let userQuizScore = 0;
+
+        function loadQuizQuestion() {
+            const item = quizQuestions[currentQuizIndex];
+            document.getElementById('quizQuestionText').innerText = item.q;
+            document.getElementById('quizHintBox').classList.add('hidden');
+            document.getElementById('btnNextQuiz').classList.add('hidden');
+
+            const optsContainer = document.getElementById('quizOptionsContainer');
+            optsContainer.innerHTML = item.options.map((opt, idx) => `
+                <button onclick="answerQuiz(${idx})" class="w-full text-left p-2.5 rounded-xl bg-slate-950 hover:bg-slate-800 border border-slate-800 text-slate-300 transition">
+                    ${opt}
+                </button>
+            `).join('');
+        }
+
+        function answerQuiz(selectedIdx) {
+            const item = quizQuestions[currentQuizIndex];
+            if (selectedIdx === item.correct) {
+                userQuizScore += 10;
+                document.getElementById('quizScoreText').innerText = `Skor: ${userQuizScore}`;
+                alertCustom('Jawaban Benar!', 'Bagus sekali! Pemahaman konseptualmu sangat tepat.', 'success');
+            } else {
+                alertCustom('Jawaban Kurang Tepat', 'Coba gunakan tombol Petunjuk untuk membantumu menganalisis ulang.', 'error');
+            }
+            document.getElementById('btnNextQuiz').classList.remove('hidden');
+        }
+
+        function getQuizHint() {
+            const item = quizQuestions[currentQuizIndex];
+            document.getElementById('quizHintText').innerText = item.hint;
+            document.getElementById('quizHintBox').classList.remove('hidden');
+        }
+
+        function nextQuizQuestion() {
+            currentQuizIndex = (currentQuizIndex + 1) % quizQuestions.length;
+            loadQuizQuestion();
+        }
+
+        /* Custom Notification Toast / Modal Replacement */
+        function alertCustom(title, text, type) {
+            const banner = document.createElement('div');
+            banner.className = `fixed bottom-5 right-5 z-50 p-4 rounded-xl border shadow-2xl text-xs max-w-sm font-sans flex items-start gap-3 ${
+                type === 'success' ? 'bg-emerald-950 border-emerald-700 text-emerald-200' : 'bg-rose-950 border-rose-700 text-rose-200'
+            }`;
+            banner.innerHTML = `
+                <i class="fa-solid ${type === 'success' ? 'fa-circle-check text-emerald-400' : 'fa-circle-xmark text-rose-400'} text-lg mt-0.5"></i>
+                <div>
+                    <div class="font-bold text-sm mb-0.5">${title}</div>
+                    <div>${text}</div>
+                </div>
+            `;
+            document.body.appendChild(banner);
+            setTimeout(() => banner.remove(), 4000);
+        }
+
+        /* Initialize All Canvases on Window Load */
+        window.onload = function() {
+            initPistonCanvas();
+            initPVCanvas();
+            initEngineCanvas();
+            initEntropyCanvas();
+            loadQuizQuestion();
+        };
+    </script>
+</body>
+</html>
